@@ -84,7 +84,7 @@ public class LibWorker {
 
     public void addUsersBookToDbBorrowings(int idUser, int idBook, String booksYearRelese) throws SQLException {
         statement.execute(String.format("INSERT INTO  mylibrary.`borrowings` (user_id, book_id, borrowing_date) VALUES ('%d','%d', '%s')", idUser, idBook, time.getCurrentTime()));
-        statement.execute(String.format("UPDATE mylibrary.books SET available = available - 1 WHERE book_id='" + idBook + "' AND release_date = '" + booksYearRelese + "'"));
+        statement.execute("UPDATE mylibrary.books SET available = available - 1 WHERE book_id='" + idBook + "' AND release_date = '" + booksYearRelese + "'");
     }
 
     public boolean bookIsFree(String bookName, String booksYearRelese) throws SQLException {
@@ -107,8 +107,8 @@ public class LibWorker {
 
     public void returnUserBook(int idUser, String bookName, String booksYearRelese) throws SQLException {
         int idBook = getIdBookByName(bookName, booksYearRelese);
-        statement.execute(String.format("UPDATE mylibrary.borrowings SET returning_date='" + time.getCurrentTime() + "' WHERE user_id='" + idUser + "' and book_id='" + idBook + "'"));
-        statement.execute(String.format("UPDATE mylibrary.books SET available = available + 1 WHERE book_id='" + idBook + "'"));
+        statement.execute("UPDATE mylibrary.borrowings SET returning_date='" + time.getCurrentTime() + "' WHERE user_id='" + idUser + "' and book_id='" + idBook + "'");
+        statement.execute("UPDATE mylibrary.books SET available = available + 1 WHERE book_id='" + idBook + "'");
     }
 
     public int borrowedUsersBooks(int userId) throws SQLException {

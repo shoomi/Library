@@ -57,7 +57,7 @@ public class RegBookInDb {
             } else {
                 System.out.println("How many books do you want to register? Enter the number");
                 stock = Integer.parseInt(br.readLine());
-                statement.execute(String.format("UPDATE mylibrary.books SET available = available + " + stock + ", stock = stock + " + stock + " WHERE books.title = '" + title + "' AND books.author = '" + author + "' and release_date = '" + releaseDate + "'"));
+                statement.execute("UPDATE mylibrary.books SET available = available + " + stock + ", stock = stock + " + stock + " WHERE books.title = '" + title + "' AND books.author = '" + author + "' and release_date = '" + releaseDate + "'");
             }
 
         } catch (IOException e) {

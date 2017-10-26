@@ -79,22 +79,35 @@ public class SomeOperations {
         int numberOfBooksDates = libWorker.getDatafromAllFreeBooksByNameFromDb(booksName);   /// show all book with the same title but different dates and record the number of dates
         if (libWorker.bookIsInLibrary(booksName)) {
 
-            if (numberOfBooksDates == 0) {
-                System.out.println("Sorry, but this book is already busy. Try enter another name");
-                givingBookProcess();
-            } else if (numberOfBooksDates == 1) {                          /// here is no requirement to enter the date of the book because there is only one date
-                booksYear = libWorker.getDateOfTheBook(booksName);
-                libWorker.giveNewBookToUser(userID, booksName, booksYear);
-            } else {                                                        /// this variant, when there is more than one date of book with the same title
-
-                System.out.println("Pleace, choose the book's year release");
-                booksYear = br.readLine();
-                if (libWorker.bookIsFree(booksName, booksYear)) {
-                    libWorker.giveNewBookToUser(userID, booksName, booksYear);
-                } else {
-                    System.out.println("Soryy, but you entered incorrect books release year. Try with another one. \nEnter the name of the book");
+            switch (numberOfBooksDates) {
+                case 0:
+                    System.out.println("Sorry, but this book is already busy. Try enter another name");
                     givingBookProcess();
-                }
+                    break;
+                case 1:                                        /// here is no requirement to enter the date of the book because there is only one date
+
+                    booksYear = libWorker.getDateOfTheBook(booksName);        /// we get single book's date by the title
+                    if (libWorker.doesUserBorrowTheBook(userID, booksName, booksYear)) {
+                        System.out.println("You cann't borrow this book because you had already borrowed it!.\nTry to choose another one. \nEnter the book's name");
+                        givingBookProcess();
+                    } else
+                        libWorker.giveNewBookToUser(userID, booksName, booksYear);
+                    break;
+                default:                                       /// this variant, when there is more than one date of book with the same title
+                    System.out.println("Pleace, choose the book's year release");
+                    booksYear = br.readLine();
+                    if (libWorker.doesUserBorrowTheBook(userID, booksName, booksYear)) {
+                        System.out.println("You cann't borrow this book because you had already borrowed it!.\nTry to choose another one. \nEnter the book's name");
+                        givingBookProcess();
+                    } else {
+
+                        if (libWorker.bookIsFree(booksName, booksYear)) {
+                            libWorker.giveNewBookToUser(userID, booksName, booksYear);
+                        } else {
+                            System.out.println("Soryy, but you entered incorrect books release year. Try with another one. \nEnter the name of the book");
+                            givingBookProcess();
+                        }
+                    }
             }
 
         } else {

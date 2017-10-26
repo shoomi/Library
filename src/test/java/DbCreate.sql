@@ -9,7 +9,6 @@ CREATE TABLE `books` (
 ) ENGINE=InnoDB AUTO_INCREMENT=56 DEFAULT CHARSET=utf8
 
 
-
 CREATE TABLE `borrowings` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
