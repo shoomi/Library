@@ -4,8 +4,6 @@ import java.io.InputStreamReader;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
 public class RegBookInDb {;
     Statement statement;
@@ -27,13 +25,13 @@ public class RegBookInDb {;
             System.out.println("Enter book's author");
             book.setAuthor(br.readLine());
 
-            enteringDateStage();
-            enteringAmountOfBooksStage();
+            enteringDate();
+            enteringStock();
 
-            if (isBookExist()){
+            if (!isBookExist()){
                 new LibWorker().addNewBookToDbBooks(book);
             } else {
-                addBooksToExisting();
+                addBookToExisting();
             }
 
         } catch (IOException | SQLException e) {
@@ -41,28 +39,30 @@ public class RegBookInDb {;
         }
     }
 
-    private void addBooksToExisting() throws SQLException {
+    private void addBookToExisting() throws SQLException {
         statement.executeUpdate(String.format("UPDATE mylibrary.books SET available = available + %d, stock = stock + %d " +
                         "WHERE books.title = '%s' AND books.author = '%s' and release_date = '%s'",
-                book.getStock(), book.getStock(), book.getTitle(), book.getAuthor(), book.getReleaseDate()));
+                        book.getStock(), book.getStock(), book.getTitle(), book.getAuthor(), book.getReleaseDate()));
     }
 
-    private void enteringDateStage() throws IOException {
-        System.out.println("Enter book's release year");
+    private void enteringDate() throws IOException {
+        System.out.println("Enter book's release year in format YYYY");
         String releaseDate = br.readLine();
 
-        while (!isDateValid(releaseDate)) {
+        while (releaseDate.length() != 4 || !releaseDate.chars().allMatch(Character::isDigit)) {
             System.out.println("Value invalid. Try again");
+            releaseDate = br.readLine();
         }
         book.setReleaseDate(releaseDate);
     }
 
-    public void enteringAmountOfBooksStage() {
+    public void enteringStock() {
         try {
             System.out.println("How many books do you want to register? Enter the number");
             String stock = br.readLine();
             while (!stock.chars().allMatch(Character::isDigit)){
                 System.out.println("Value invalid. Try again");
+                br.readLine();
             }
             book.setStock(Integer.parseInt(stock));
         } catch (IOException e) {
@@ -77,16 +77,6 @@ public class RegBookInDb {;
             return true;
         }
         return false;
-    }
-
-    private boolean isDateValid(String date) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy");
-        try {
-            sdf.parse(date);
-            return true;
-        } catch (ParseException ex) {
-            return false;
-        }
     }
 
 }
