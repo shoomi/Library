@@ -4,13 +4,6 @@ private int stock;
     public Book() {
     }
 
-    public Book(String title, String author, String releaseDate, int stock) {
-        this.title = title;
-        this.author = author;
-        this.releaseDate = releaseDate;
-        this.stock = stock;
-    }
-
     public String getTitle() {
         return title;
     }

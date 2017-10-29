@@ -2,119 +2,105 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 
 public class SomeOperations {
-    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    BufferedReader br;
+    LibWorker libWorker;
     private String userLogin, booksName, booksYear, takeOrRetur = null;
     private int userID = 0;
-    LibWorker libWorker = new LibWorker();
 
     public SomeOperations() throws SQLException {
+        br = new BufferedReader(new InputStreamReader(System.in));
+        libWorker = new LibWorker();
     }
 
-    public void runOperation() throws IOException, SQLException {
-        System.out.println("\nPleace, enter your login");
-        userLogin = br.readLine();
-        userID = libWorker.getIdUserbyLogin(userLogin);
-        if (userID >= 0) {
-            System.out.println("\nTo take book enter 't'. To return book enter 'r'");
-            takeOrRetur = br.readLine();
-            switch (takeOrRetur) {
-                case "t":
-                    showAllFreeBooksAndGiveOneToUser();
-                    break;
-                case "r":
-                    bookReturn();
-                    break;
-                default:
+    public void runOperations() {
+
+        try {
+            System.out.println("\nPleace, enter your login");
+            userLogin = br.readLine();
+            userID = libWorker.getIdUserbyLogin(userLogin);
+            if (userID >= 0) {
+
+                System.out.println("\nTo take book enter 't'. To return book enter 'r'");
+                takeOrRetur = br.readLine();
+
+                while (!(takeOrRetur.equals("t") | takeOrRetur.equals("r"))) {
                     System.out.println("\nYou've entered incorrect value. Try again");
-                    runOperation();
+                    takeOrRetur = br.readLine();
+                }
+
+                switch (takeOrRetur) {
+                    case "t":
+                        takeBook();
+                        break;
+                    case "r":
+                        returnBook();
+                        break;
+                }
+
+            } else {
+                System.out.println("\nSorry. but login '" + userLogin + "' is not registered. You should register first");
+                new Main().runProgram();
             }
+
+        } catch (IOException | SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void returnBook() throws SQLException, IOException {
+
+        if (libWorker.doesUserBorrowBooks(userID) > 0) {
+            enterBookNameAndYear();
+
+            while (!libWorker.userBorrowThisBook(userID, booksName, booksYear)) {
+                System.out.println("You entered wrong book's title or year. Try again");
+                enterBookNameAndYear();
+            }
+            libWorker.returnUserBook(userID, booksName, booksYear);
+            System.out.println("\nThe book was successfully returned!");
 
         } else {
-            System.out.println("\nSorry. but login '" + userLogin + "' is not registered. You should register first");
-            new Main().runProgram();
+            System.out.println("\nYou don't have to return anything");
         }
     }
 
-    private void bookReturn() {
-        try {
 
-            if (libWorker.borrowedUsersBooks(userID) > 0) {
-                System.out.println("\n Enter book's name you want to return");
-                booksName = br.readLine();
-                System.out.println("\n Enter book's year release");
-                booksYear = br.readLine();
-                if (libWorker.doesUserBorrowTheBook(userID, booksName, booksYear)) {//
-                    libWorker.returnUserBook(userID, booksName, booksYear);
-                    System.out.println("\nThe book was successfully returned!");
-                } else {
-                    System.out.println("\nIt's look like you've wrote incorrect book's name, year or you've already returned this book. Try again");
-                    bookReturn();
-                }
-            } else {
-                System.out.println("\nYou don't have to return anything");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
+    private void takeBook() throws IOException, SQLException {
 
-    private void showAllFreeBooksAndGiveOneToUser() {
         try {
             libWorker.showAllFreeBooksFromDb();
             System.out.println("\nThese are all free books in our library at this time. \nYou can choose one of them by name.\n");
-            givingBookProcess();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+            enterBookNameAndYear();
 
-    private void givingBookProcess() throws IOException, SQLException {
-        booksName = br.readLine();
-        int numberOfBooksDates = libWorker.getDatafromAllFreeBooksByNameFromDb(booksName);   /// show all book with the same title but different dates and record the number of dates
-        if (libWorker.bookIsInLibrary(booksName)) {
-
-            switch (numberOfBooksDates) {
-                case 0:
-                    System.out.println("Sorry, but this book is already busy. Try enter another name");
-                    givingBookProcess();
-                    break;
-                case 1:                                        /// here is no requirement to enter the date of the book because there is only one date
-
-                    booksYear = libWorker.getDateOfTheBook(booksName);        /// we get single book's date by the title
-                    if (libWorker.doesUserBorrowTheBook(userID, booksName, booksYear)) {
-                        System.out.println("You cann't borrow this book because you had already borrowed it!.\nTry to choose another one. \nEnter the book's name");
-                        givingBookProcess();
-                    } else
-                        libWorker.giveNewBookToUser(userID, booksName, booksYear);
-                    break;
-                default:                                       /// this variant, when there is more than one date of book with the same title
-                    System.out.println("Pleace, choose the book's year release");
-                    booksYear = br.readLine();
-                    if (libWorker.doesUserBorrowTheBook(userID, booksName, booksYear)) {
-                        System.out.println("You cann't borrow this book because you had already borrowed it!.\nTry to choose another one. \nEnter the book's name");
-                        givingBookProcess();
-                    } else {
-
-                        if (libWorker.bookIsFree(booksName, booksYear)) {
-                            libWorker.giveNewBookToUser(userID, booksName, booksYear);
-                        } else {
-                            System.out.println("Soryy, but you entered incorrect books release year. Try with another one. \nEnter the name of the book");
-                            givingBookProcess();
-                        }
-                    }
+            while (!libWorker.bookIsFree(booksName, booksYear)) {
+                System.out.println("Sorry, but you can't take this book. Try another one.");
+                enterBookNameAndYear();
             }
-
-        } else {
-            System.out.println("This book '" + booksName + "' doesn't exist in our library. Try enter enother book's title");
-            givingBookProcess();
+            while (libWorker.userBorrowThisBook(userID, booksName, booksYear)) {
+                System.out.println("Sorry, but you can't take this book. Try another one.");
+                enterBookNameAndYear();
+            }
+            libWorker.giveNewBookToUser(userID, booksName, booksYear);
+        } catch (SQLIntegrityConstraintViolationException e) {
+            System.out.println("There is no such book in our library");
         }
     }
 
+
+    private void enterBookNameAndYear() throws IOException {
+
+        System.out.println("\nEnter book's name");
+        booksName = br.readLine();
+        System.out.println("\nEnter book's year release in format YYYY");
+        booksYear = br.readLine();
+
+        while (booksYear.length() != 4 || !booksYear.chars().allMatch(Character::isDigit)) {
+            System.out.println("Value invalid. Try again");
+            booksYear = br.readLine();
+        }
+    }
 
 }

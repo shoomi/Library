@@ -5,9 +5,12 @@ import java.sql.SQLException;
 
 public class Main {
 
-    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    private String userChoice, yesNo;
+    BufferedReader br;
 
-    private String userBookOperationsQuit, yesNo;
+    public Main() {
+        br = new BufferedReader(new InputStreamReader(System.in));
+    }
 
     public void doMore() throws IOException {
         System.out.println("Do you want to do something else? y/n");
@@ -29,9 +32,14 @@ public class Main {
             RegBookInDb regBookInDb = new RegBookInDb();
             SomeOperations someOperations = new SomeOperations();
             RegUserInDb regUserInDb = new RegUserInDb();
-            userBookOperationsQuit = br.readLine();
+            userChoice = br.readLine();
 
-            switch (userBookOperationsQuit) {
+            while (!(userChoice.equals("u") | userChoice.equals("b") | (userChoice.equals("o") | userChoice.equals("q")))) {
+                System.out.println("\nYou've entered incorrect value! Try again");
+                userChoice = br.readLine();
+            }
+
+            switch (userChoice) {
                 case "u":
                     regUserInDb.addNewUser();
                     doMore();
@@ -41,19 +49,14 @@ public class Main {
                     doMore();
                     break;
                 case "o":
-                    someOperations.runOperation();
+                    someOperations.runOperations();
                     doMore();
                     break;
                 case "q":
                     break;
-                default:
-                    System.out.println("You've entered incorrect value.");
-                    runProgram();
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
+        } catch (IOException | SQLException e) {
             e.printStackTrace();
         }
     }

@@ -11,82 +11,77 @@ import java.util.regex.Pattern;
 
 public class RegUserInDb {
 
+    BufferedReader br;
     String date = null, telephone = null;
 
-    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    public RegUserInDb() {
+        br = new BufferedReader(new InputStreamReader(System.in));
+    }
 
     public void addNewUser() {
-
-        String login = null, f_name = null, l_name = null;
+        User user = new User();
+        String login = null;
 
         System.out.println("\nEnter your login");
+
         try {
-
             login = br.readLine();
-            if (!loginIsBusy(login)) {
-                System.out.println("Please. Enter your firs name");
-                f_name = br.readLine();
-                System.out.println("Please. Enter your last name");
-                l_name = br.readLine();
-                dateEnteringStage();
-                telephoneEnteringStage();
 
-                User user = new User();
-                user.setLogin(login);
-                user.setFirst_name(f_name);
-                user.setLast_name(l_name);
-                user.setDate_of_birth(date);
-                user.setTelephone(telephone);
-
-                LibWorker libWarker = new LibWorker();
-                libWarker.addNewUserToDbUsers(user);
-                System.out.println("\nYou were successfully added to the database!");
-
-            } else {
+            while (loginIsBusy(login)) {
                 System.out.println("\nSory, but this login is already in use! Try again with another one.");
-                addNewUser();
+                login = br.readLine();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
+
+            user.setLogin(login);
+
+            System.out.println("Please. Enter your firs name");
+            user.setFirst_name(br.readLine());
+            System.out.println("Please. Enter your last name");
+            user.setLast_name(br.readLine());
+
+            enteringDate();
+            enteringTelephone();
+
+            user.setDate_of_birth(date);
+            user.setTelephone(telephone);
+
+            new LibWorker().addNewUserToDbUsers(user);
+            System.out.println("\nYou were successfully added to the database!");
+
+        } catch (IOException | SQLException e) {
             e.printStackTrace();
         }
     }
 
-    private void dateEnteringStage() throws IOException {
+    private void enteringDate() throws IOException {
 
         System.out.println("Please. Enter date of birth in format: yyyy-MM-dd");
         date = br.readLine();
-        if (dateIsValide(date)) {
-
-        } else {
-            System.out.println("You entered date in wrong format");
-            dateEnteringStage();
+        while (!dateIsValide(date)) {
+            System.out.println("You entered date in wrong format. Try again");
+            date = br.readLine();
         }
     }
 
-    private void telephoneEnteringStage() throws IOException {
+    private void enteringTelephone() throws IOException {
 
-        System.out.println("Please. Enter your phone number");
+        System.out.println("Please. Enter your phone number in format 0**-*******");
         telephone = br.readLine();
-        if (telephoneIsValid(telephone)) {
-
-        } else {
-            System.out.println("You entered telephone in wrong format");
-            telephoneEnteringStage();
+        while (!telephoneIsValid(telephone)) {
+            System.out.println("You entered telephone in wrong format. Try again");
+            telephone = br.readLine();
         }
     }
 
     private boolean loginIsBusy(String login) throws SQLException {
-        DBWarker dbWarker = new DBWarker();
-        Statement statement = dbWarker.getConnection().createStatement();
-        String busyLogin = "";
+        DBWorker dbWorker = new DBWorker();
+        Statement statement = dbWorker.getConnection().createStatement();
         String query = "SELECT login FROM mylibrary.users where login='" + login + "'";
-        ResultSet resultSet = statement.executeQuery(query);
-        while (resultSet.next()) {
-            busyLogin = resultSet.getString("login");
+        ResultSet rs = statement.executeQuery(query);
+        if (rs.next()) {
+            return true;
         }
-        return login.equals(busyLogin.trim());
+        return false;
     }
 
     private boolean dateIsValide(String date) {
@@ -104,6 +99,7 @@ public class RegUserInDb {
         Matcher matcher = pattern.matcher(tel);
         if (matcher.matches()) {
             return true;
-        } else return false;
+        }
+        return false;
     }
 }

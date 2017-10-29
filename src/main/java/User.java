@@ -5,14 +5,6 @@ public class User {
     public User() {
     }
 
-    public User(String login, String first_name, String last_name, String date_of_birth, String telephone, String borrowing_date) {
-        this.login = login;
-        this.first_name = first_name;
-        this.last_name = last_name;
-        this.date_of_birth = date_of_birth;
-        this.telephone = telephone;
-    }
-
     public String getLogin() {
         return login;
     }
